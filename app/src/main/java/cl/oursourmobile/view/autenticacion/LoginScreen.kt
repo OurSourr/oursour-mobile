@@ -1,4 +1,4 @@
-package cl.oursourmobile.view
+package cl.oursourmobile.view.autenticacion
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
