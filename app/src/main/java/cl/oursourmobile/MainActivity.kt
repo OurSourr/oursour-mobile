@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import cl.oursourmobile.ui.theme.OurSourMobileTheme
-import cl.oursourmobile.view.LoginScreen
+import cl.oursourmobile.view.autenticacion.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
