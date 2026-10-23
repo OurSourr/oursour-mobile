@@ -18,10 +18,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-// Imports de tus vistas
+// Imports de vistas
 import cl.oursourmobile.view.carrito.CarritoScreen
 //import cl.oursourmobile.view.catalogo.DetalleProductoScreen
-//import cl.oursourmobile.view.pedidos.CheckoutScreen
+import cl.oursourmobile.view.pedidos.CheckoutScreen
 //import cl.oursourmobile.view.pedidos.ConfirmacionPedidoScreen
 //import cl.oursourmobile.view.pedidos.HistorialPedidosScreen
 //import cl.oursourmobile.view.pedidos.PagoSimuladoScreen
@@ -76,36 +76,42 @@ fun AppNavigation() {
                 )
             }
 
-            /*
 
-        //1. Detalle de Producto
-        composable(
-            route = Routes.DetalleProducto.route,
-            arguments = listOf(navArgument("idProducto") { type = NavType.IntType })
-        ) {
-            DetalleProductoScreen()
-        }
+            // Carrito de Compras
+            composable(Routes.Carrito.route) {
+                CarritoScreen(
+                    onProcederCheckout = {
+                        navController.navigate(Routes.Checkout.route)
+                    }
+                )
+            }
 
-        // 2. Carrito de Compras
-        composable(Routes.Carrito.route) {
-            CarritoScreen(
-                onProcederCheckout = {
-                    navController.navigate(Routes.Checkout.route)
-                }
-            )
-        }
+           // Checkout y Despacho
+            composable(Routes.Checkout.route) {
+                CheckoutScreen(
+                    onVolverAlCarrito = { navController.popBackStack() },
+                    onConfirmarPago = { _-> //el _va mientras no se cree pedido
+                         navController.navigate(Routes.PagoSimulado.route)
+                    }
+                )
+            }
+        /*
+            // Detalle de Producto
+            composable(
+                route = Routes.DetalleProducto.route,
+                arguments = listOf(navArgument("idProducto") { type = NavType.IntType })
+            ) {
+                DetalleProductoScreen()
+            }
 
-        // 3. Checkout y Despacho
-        composable(Routes.Checkout.route) {
-            CheckoutScreen()
-        }
 
-        // 4. Pago Simulado
+
+        // Pago Simulado
         composable(Routes.PagoSimulado.route) {
             PagoSimuladoScreen()
         }
 
-        // 5. Confirmación de Pedido
+        //Confirmación de Pedido
         composable(
             route = Routes.ConfirmacionPedido.route,
             arguments = listOf(navArgument("idPedido") { type = NavType.IntType })
@@ -116,7 +122,9 @@ fun AppNavigation() {
         // 6. Historial de Pedidos
         composable(Routes.HistorialPedidos.route) {
             HistorialPedidosScreen()
-        }*/
+        }
+
+         */
         }
     }
 }

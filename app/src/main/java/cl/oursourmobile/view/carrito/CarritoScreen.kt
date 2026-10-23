@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -91,7 +92,7 @@ fun CarritoScreen(
                     }
                 }
 
-                // Panel de Subtotal + Checkout pegado en la parte inferior sobre la barra principal
+                // Panel de Subtotal + Checkout
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -138,7 +139,7 @@ fun ItemCarritoCard(
 ) {
     val context = LocalContext.current
 
-    // Buscamos el ID dinámico a partir de la clave en String (ej: "agua_tonica", "limon_our", "gin_our")
+    // Se busca el ID a partir de la clave en String (ej: "agua_tonica", "limon_our", "gin_our")
     val imageResId = remember(item.imagenKey) {
         val id = context.resources.getIdentifier(item.imagenKey, "drawable", context.packageName)
         if (id != 0) id else R.drawable.ic_launcher_foreground
@@ -158,16 +159,16 @@ fun ItemCarritoCard(
             Image(
                 painter = painterResource(id = imageResId),
                 contentDescription = item.nombre,
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(80.dp)
                     .background(Color.White, shape = RoundedCornerShape(8.dp))
-                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Información del Producto (Nombre y Precio)
+            // Información del Producto Nombre y Precio
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -178,7 +179,7 @@ fun ItemCarritoCard(
                 )
             }
 
-            // Contenedor gris tipo píldora para (- 1 +)
+            // Contenedor gris tipo  para (- 1 +) agrgar o elimian prouctos
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = Color(0xFFEEEEEE)
