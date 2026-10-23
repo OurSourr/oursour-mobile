@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import cl.oursourmobile.navigation.AppNavigation
 import cl.oursourmobile.ui.theme.OurSourMobileTheme
 import cl.oursourmobile.view.autenticacion.LoginScreen
 
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OurSourMobileTheme {
-                LoginScreen()
+                AppNavigation()
             }
         }
     }
