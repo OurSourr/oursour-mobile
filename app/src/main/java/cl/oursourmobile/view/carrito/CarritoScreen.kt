@@ -42,6 +42,7 @@ fun formatPrecioCLP(monto: Int): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarritoScreen(
+
     viewModel: CarritoViewModel = viewModel(),
     onProcederCheckout: () -> Unit = {}
 ) {

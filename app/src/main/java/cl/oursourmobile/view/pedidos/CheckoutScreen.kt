@@ -30,7 +30,7 @@ fun CheckoutScreen(
     onConfirmarPago: (Pedido) -> Unit = {}
 ) {
     val itemsCarrito by carritoViewModel.items.collectAsState()
-    val subtotal = carritoViewModel.subtotal
+    val subtotal = itemsCarrito.sumOf { it.precio * it.cantidad }
     val tipoEntrega by checkoutViewModel.tipoEntrega.collectAsState()
     val costoEnvio = checkoutViewModel.costoEnvio
     val total = subtotal + costoEnvio
@@ -51,44 +51,57 @@ fun CheckoutScreen(
             )
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Total a pagar", fontSize = 18.sp, fontWeight = FontWeight.Normal)
-                    Text(
-                        text = formatPrecioCLP(total),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E8842)
-                    )
-                }
+            // Calculamos si el formulario es válido directamente con las variables reactivas
+            val esValido = nombre.isNotBlank() && direccion.isNotBlank() && telefono.isNotBlank()
 
-                Button(
-                    onClick = {
-                        val nuevoPedido = checkoutViewModel.crearPedido(itemsCarrito, subtotal)
-                        onConfirmarPago(nuevoPedido)
-                    },
-                    enabled = checkoutViewModel.esFormularioValido(),
+            Surface(
+                color = Color.White,
+                shadowElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1E8842),
-                        disabledContainerColor = Color(0xFFA5D6A7)
-                    ),
-                    shape = RoundedCornerShape(8.dp)
+                        .padding(16.dp)
                 ) {
-                    Text("Ir al Pago Simulado", fontSize = 16.sp, color = Color.White)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Total a pagar", fontSize = 18.sp, fontWeight = FontWeight.Normal, color = Color(0xFF1E1E1E))
+                        Text(
+                            text = formatPrecioCLP(total),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1E8842)
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            val nuevoPedido = checkoutViewModel.crearPedido(itemsCarrito, subtotal)
+                            onConfirmarPago(nuevoPedido)
+                        },
+                        enabled = esValido, // <-- Usa 'esValido' para que Compose reaccione en tiempo real
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1E8842),          // Verde oscuro cuando está activo
+                            disabledContainerColor = Color(0xFFA5D6A7)  // Verde claro inactivo
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "Ir al Pago Simulado",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }

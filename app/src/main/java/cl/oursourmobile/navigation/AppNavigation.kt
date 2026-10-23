@@ -17,20 +17,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
+import androidx.lifecycle.viewmodel.compose.viewModel
 // Imports de vistas
+import cl.oursourmobile.viewmodel.CarritoViewModel
 import cl.oursourmobile.view.carrito.CarritoScreen
 //import cl.oursourmobile.view.catalogo.DetalleProductoScreen
 import cl.oursourmobile.view.pedidos.CheckoutScreen
 //import cl.oursourmobile.view.pedidos.ConfirmacionPedidoScreen
 //import cl.oursourmobile.view.pedidos.HistorialPedidosScreen
 //import cl.oursourmobile.view.pedidos.PagoSimuladoScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-//navController: elemento que permite recordar navegacion saber de donde viene
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val carritoViewModel: CarritoViewModel = viewModel()
 
     Scaffold(
         bottomBar = {
@@ -67,35 +69,28 @@ fun AppNavigation() {
             startDestination = Routes.Carrito.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // 1. Carrito de Compras (Pestaña principal actual)
+            // 1. Carrito de Compras
             composable(Routes.Carrito.route) {
                 CarritoScreen(
-                    onProcederCheckout = {
-                        // navController.navigate(Routes.Checkout.route)
-                    }
-                )
-            }
-
-
-            // Carrito de Compras
-            composable(Routes.Carrito.route) {
-                CarritoScreen(
+                    viewModel = carritoViewModel,
                     onProcederCheckout = {
                         navController.navigate(Routes.Checkout.route)
                     }
                 )
             }
 
-           // Checkout y Despacho
+            // 2. Checkout y Despacho
             composable(Routes.Checkout.route) {
                 CheckoutScreen(
+                    carritoViewModel = carritoViewModel,
                     onVolverAlCarrito = { navController.popBackStack() },
-                    onConfirmarPago = { _-> //el _va mientras no se cree pedido
-                         navController.navigate(Routes.PagoSimulado.route)
+                    onConfirmarPago = { _ ->
+                        navController.navigate(Routes.PagoSimulado.route)
                     }
                 )
             }
-        /*
+
+            /*
             // Detalle de Producto
             composable(
                 route = Routes.DetalleProducto.route,
@@ -104,28 +99,24 @@ fun AppNavigation() {
                 DetalleProductoScreen()
             }
 
+            // Pago Simulado
+            composable(Routes.PagoSimulado.route) {
+                PagoSimuladoScreen()
+            }
 
+            // Confirmación de Pedido
+            composable(
+                route = Routes.ConfirmacionPedido.route,
+                arguments = listOf(navArgument("idPedido") { type = NavType.IntType })
+            ) {
+                ConfirmacionPedidoScreen()
+            }
 
-        // Pago Simulado
-        composable(Routes.PagoSimulado.route) {
-            PagoSimuladoScreen()
-        }
-
-        //Confirmación de Pedido
-        composable(
-            route = Routes.ConfirmacionPedido.route,
-            arguments = listOf(navArgument("idPedido") { type = NavType.IntType })
-        ) {
-            ConfirmacionPedidoScreen()
-        }
-
-        // 6. Historial de Pedidos
-        composable(Routes.HistorialPedidos.route) {
-            HistorialPedidosScreen()
-        }
-
-         */
+            // Historial de Pedidos
+            composable(Routes.HistorialPedidos.route) {
+                HistorialPedidosScreen()
+            }
+            */
         }
     }
 }
-
