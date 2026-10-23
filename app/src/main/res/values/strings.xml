@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">OurSourMobile</string>
+    <string name="inicio_bienvenida">¡Bienvenido a Our Sour!</string>
+    <string name="inicio_descripcion">Descubre recetas con los ingredientes que tienes en casa.</string>
+    <string name="inicio_boton_descubrir">Descubrir recetas</string>
+    <string name="inicio_explorar">Explora Our Sour</string>
+    <string name="inicio_acceso_recetas">Recetas</string>
+    <string name="inicio_acceso_productos">Productos</string>
+    <string name="inicio_acceso_escaner_qr">Escáner QR</string>
+    <string name="ingredientes_titulo">Selecciona tus ingredientes</string>
+    <string name="ingredientes_buscar">Buscar ingrediente</string>
 </resources>
