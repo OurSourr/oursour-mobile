@@ -1,14 +1,16 @@
+
 package cl.oursourmobile.viewmodel
-//ve la loogica
+
 import androidx.lifecycle.ViewModel
 import cl.oursourmobile.model.ItemCarrito
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import cl.oursourmobile.R
+import kotlinx.coroutines.flow.update
 
-class CarritoViewModel: ViewModel() {
-    // Lista de ítems en el carrito (iniciamos con los productos de muestra del mockup)
+class CarritoViewModel : ViewModel() {
+
+    // Productos demostrativos existentes
     private val _items = MutableStateFlow(
         listOf(
             ItemCarrito(
@@ -41,27 +43,97 @@ class CarritoViewModel: ViewModel() {
             )
         )
     )
+
     val items: StateFlow<List<ItemCarrito>> = _items.asStateFlow()
 
-    // Cálculo dinámico del subtotal
+    // Subtotal dinámico
     val subtotal: Int
-        get() = _items.value.sumOf { it.precio * it.cantidad }
+        get() = _items.value.sumOf { item ->
+            Math.multiplyExact(item.precio, item.cantidad)
+        }
 
+    /**
+     * Agrega una unidad del producto al carrito.
+     * Si ya existe, incrementa su cantidad.
+     */
+    fun agregarProducto(producto: ItemCarrito) {
+        require(producto.id > 0) {
+            "El identificador del producto debe ser positivo."
+        }
+        require(producto.precio >= 0) {
+            "El precio del producto no puede ser negativo."
+        }
+
+        _items.update { productosActuales ->
+            val productoExistente = productosActuales.find {
+                it.id == producto.id
+            }
+
+            if (productoExistente == null) {
+                productosActuales + producto.copy(cantidad = 1)
+            } else {
+                productosActuales.map { item ->
+                    if (item.id == producto.id) {
+                        item.copy(
+                            cantidad = Math.addExact(item.cantidad, 1)
+                        )
+                    } else {
+                        item
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Incrementa la cantidad de un producto existente.
+     */
     fun incrementarCantidad(itemId: Int) {
-        _items.value = _items.value.map { item ->
-            if (item.id == itemId) item.copy(cantidad = item.cantidad + 1) else item
+        _items.update { productosActuales ->
+            productosActuales.map { item ->
+                if (item.id == itemId) {
+                    item.copy(
+                        cantidad = Math.addExact(item.cantidad, 1)
+                    )
+                } else {
+                    item
+                }
+            }
         }
     }
 
+    /**
+     * Disminuye la cantidad sin permitir valores
+     * inferiores a una unidad.
+     */
     fun decrementarCantidad(itemId: Int) {
-        _items.value = _items.value.map { item ->
-            if (item.id == itemId && item.cantidad > 1) {
-                item.copy(cantidad = item.cantidad - 1)
-            } else item
+        _items.update { productosActuales ->
+            productosActuales.map { item ->
+                if (item.id == itemId && item.cantidad > 1) {
+                    item.copy(cantidad = item.cantidad - 1)
+                } else {
+                    item
+                }
+            }
         }
     }
 
+    /**
+     * Elimina completamente un producto del carrito.
+     */
     fun eliminarItem(itemId: Int) {
-        _items.value = _items.value.filter { it.id != itemId }
+        _items.update { productosActuales ->
+            productosActuales.filter { item ->
+                item.id != itemId
+            }
+        }
+    }
+
+    /**
+     * Vacía el carrito después de confirmar
+     * correctamente una compra.
+     */
+    fun vaciarCarrito() {
+        _items.value = emptyList()
     }
 }
