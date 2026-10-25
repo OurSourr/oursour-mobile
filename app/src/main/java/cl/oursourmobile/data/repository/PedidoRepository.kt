@@ -1,85 +1,45 @@
+package cl.oursourmobile.repository
 
-package cl.oursourmobile.data.repository
-
+import cl.oursourmobile.dao.PedidoDao
 import cl.oursourmobile.model.Pedido
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
 
-class PedidoRepository {
+class PedidoRepository(private val pedidoDao: PedidoDao) {
 
-    private val _pedidos = MutableStateFlow<List<Pedido>>(emptyList())
+    // Lista de pedidos observada en tiempo real desde Room
+    val pedidos: Flow<List<Pedido>> = pedidoDao.pedidoListar()
 
-    val pedidos: StateFlow<List<Pedido>> = _pedidos.asStateFlow()
-
-    private var siguienteId = 1
-
-    @Synchronized
-    fun registrarPedido(pedido: Pedido): Pedido {
-        require(pedido.id == 0) {
-            "Solo se pueden registrar pedidos nuevos."
-        }
-
-        require(pedido.items.isNotEmpty()) {
-            "El pedido no puede estar vacío."
-        }
-
-        require(pedido.items.all { it.precio >= 0 && it.cantidad > 0 }) {
-            "El pedido contiene productos inválidos."
-        }
-
-        val subtotalCalculado = pedido.items.sumOf { item ->
-            Math.multiplyExact(item.precio, item.cantidad)
-        }
-
-        val totalCalculado = Math.addExact(
-            subtotalCalculado,
-            pedido.costoEnvio
-        )
-
-        require(pedido.subtotal == subtotalCalculado) {
-            "El subtotal del pedido es incorrecto."
-        }
-
-        require(pedido.costoEnvio >= 0 && pedido.total == totalCalculado) {
-            "El total del pedido es incorrecto."
-        }
-
+    suspend fun registrarPedido(pedido: Pedido) {
+        // Validaciones de negocio importadas de la versión de tu compañero
         require(pedido.nombreCliente.isNotBlank()) {
             "El nombre del cliente es obligatorio."
         }
-
         require(pedido.telefono.isNotBlank()) {
             "El teléfono del cliente es obligatorio."
         }
-
-        require(pedido.tipoEntrega == "envio" ||
-                pedido.tipoEntrega == "retiro"
-        ) {
+        require(pedido.tipoEntrega == "envio" || pedido.tipoEntrega == "retiro") {
             "El tipo de entrega no es válido."
         }
-
         if (pedido.tipoEntrega == "envio") {
             require(pedido.direccion.isNotBlank()) {
                 "La dirección es obligatoria para despacho."
             }
         }
 
-        check(siguienteId < Int.MAX_VALUE) {
-            "Se agotaron los identificadores de pedidos."
-        }
-
-        val pedidoRegistrado = pedido.copy(
-            id = siguienteId++,
-            items = pedido.items.map { it.copy() }
-        )
-
-        _pedidos.value = _pedidos.value + pedidoRegistrado
-
-        return pedidoRegistrado
+        // Guardar en la base de datos Room
+        pedidoDao.pedidoAlmacenar(pedido)
     }
 
-    fun obtenerPedidoPorId(id: Int): Pedido? {
-        return _pedidos.value.firstOrNull { it.id == id }
+    suspend fun actualizar(pedido: Pedido) {
+        pedidoDao.pedidoActualizar(pedido)
+    }
+
+    suspend fun eliminar(pedido: Pedido) {
+        pedidoDao.pedidoEliminar(pedido)
+    }
+
+    suspend fun obtenerPedidoPorId(id: Int): Pedido? {
+        if (id <= 0) return null
+        return pedidoDao.pedidoObtenerPorId(id)
     }
 }

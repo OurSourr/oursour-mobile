@@ -1,16 +1,27 @@
 
 package cl.oursourmobile.model
+import androidx.room3.PrimaryKey
+import androidx.room3.Entity
+import androidx.room3.Ignore
+
+@Entity(tableName = "receta")
 
 data class Receta(
-    val id: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
     val nombre: String,
     val descripcion: String,
     val categoria: String,
-    val ingredientes: List<String>,
-    val preparacion: List<String>,
     val publicada: Boolean = true,
-    val ingredientesObligatoriosIds: Set<Long> = emptySet()
+    val ingredientesTexto: String = "",
+    val preparacionTexto: String = ""
 ) {
+    @Ignore
+    val ingredientesObligatoriosIds: Set<Long> = emptySet()
+    @Ignore
+    val ingredientes: List<String> = ingredientesTexto.split(";").filter { it.isNotBlank() }
+    @Ignore
+    val preparacion: List<String> = preparacionTexto.split(";").filter { it.isNotBlank() }
     init {
         require(id > 0L) {
             "El identificador de la receta debe ser positivo."
@@ -36,8 +47,10 @@ data class Receta(
             "Las instrucciones no pueden estar vacías."
         }
 
-        require(ingredientesObligatoriosIds.all { it > 0L }) {
-            "Los identificadores de ingredientes deben ser positivos."
+        if (ingredientesObligatoriosIds.isNotEmpty()) {
+            require(ingredientesObligatoriosIds.all { it > 0L }) {
+                "Los identificadores de ingredientes deben ser positivos."
+            }
         }
 
         if (publicada) {
@@ -56,6 +69,6 @@ data class Receta(
      * necesaria para participar en recomendaciones.
      */
     fun esRecomendable(): Boolean {
-        return publicada && ingredientesObligatoriosIds.isNotEmpty()
+        return publicada && ingredientesTexto.isNotEmpty()
     }
 }

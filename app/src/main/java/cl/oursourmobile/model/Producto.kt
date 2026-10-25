@@ -1,14 +1,12 @@
 
 package cl.oursourmobile.model
+import androidx.room3.PrimaryKey
+import androidx.room3.Entity
 
-/**
- * Representa un producto disponible en el catálogo.
- *
- * La cantidad no pertenece a este modelo:
- * se administra mediante ItemCarrito.
- */
+@Entity(tableName = "producto")
 data class Producto(
-    val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val nombre: String,
     val descripcion: String,
     val precio: Int,

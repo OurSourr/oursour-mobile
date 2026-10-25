@@ -1,4 +1,3 @@
-
 package cl.oursourmobile.view.recetas
 
 import androidx.compose.foundation.background
@@ -14,13 +13,19 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import cl.oursourmobile.data.repository.RecetasRepository
-import cl.oursourmobile.model.Receta
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+// Importaciones de paquetes de la aplicación
+import cl.oursourmobile.data.database.AppDatabase
+import cl.oursourmobile.repository.RecetaRepository
+import cl.oursourmobile.model.Receta
 
 @Composable
 fun DetalleRecetaScreen(
@@ -28,12 +33,21 @@ fun DetalleRecetaScreen(
     onVolver: () -> Unit,
     onVerProductos: () -> Unit
 ) {
-    val receta = RecetasRepository.obtenerRecetaPorId(idReceta)
+    val context = LocalContext.current
+
+    // Carga asíncrona desde Room para Compose
+    val receta by produceState<Receta?>(initialValue = null, idReceta) {
+        val database = AppDatabase.getDatabase(context.applicationContext as android.app.Application)
+        val repository = RecetaRepository(database.recetaDao())
+        value = repository.obtenerPorId(idReceta)
+    }
 
     if (receta == null) {
         RecetaNoEncontrada(onVolver = onVolver)
         return
     }
+
+    val itemReceta = receta!!
 
     Scaffold(
         topBar = {
@@ -100,15 +114,15 @@ fun DetalleRecetaScreen(
                 .padding(horizontal = 22.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            EncabezadoReceta(receta)
+            EncabezadoReceta(itemReceta)
 
             HorizontalDivider()
 
-            SeccionIngredientes(receta)
+            SeccionIngredientes(itemReceta)
 
             HorizontalDivider()
 
-            SeccionPreparacion(receta)
+            SeccionPreparacion(itemReceta)
 
             Spacer(Modifier.height(12.dp))
         }
@@ -303,4 +317,3 @@ private fun DetalleRecetaPreview() {
         )
     }
 }
-

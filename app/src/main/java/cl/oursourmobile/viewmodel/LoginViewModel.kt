@@ -1,15 +1,19 @@
-
 package cl.oursourmobile.viewmodel
 
+import android.app.Application
 import android.util.Patterns
-import androidx.lifecycle.ViewModel
-import cl.oursourmobile.data.autenticacion.AutenticacionDemo
-import cl.oursourmobile.data.autenticacion.AutenticacionRepository
-import cl.oursourmobile.data.autenticacion.ResultadoLogin
-import cl.oursourmobile.data.autenticacion.UsuarioSimulado
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+// Importaciones ajustadas a los paquetes exactos de tu proyecto
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+import cl.oursourmobile.data.database.AppDatabase
+import cl.oursourmobile.data.repository.UsuarioRepository
+
 
 data class LoginUiState(
     val correo: String = "",
@@ -18,18 +22,21 @@ data class LoginUiState(
     val errorCorreo: String? = null,
     val errorContrasena: String? = null,
     val mensajeError: String? = null,
-    val usuarioAutenticado: UsuarioSimulado? = null
+    val usuarioAutenticado: Any? = null
 )
 
-class LoginViewModel(
-    private val autenticacionRepository: AutenticacionRepository =
-        AutenticacionDemo.repository
-) : ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repository: UsuarioRepository
 
     private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    val uiState: StateFlow<LoginUiState> =
-        _uiState.asStateFlow()
+    init {
+        // Estándar del profesor: Instanciación de la BD y DAO dentro de init
+        val usuarioDao = AppDatabase.getDatabase(context = application).usuarioDao()
+        repository = UsuarioRepository(usuarioDao)
+    }
 
     fun actualizarCorreo(correo: String) {
         _uiState.value = _uiState.value.copy(
@@ -58,19 +65,13 @@ class LoginViewModel(
         val correo = estado.correo.trim()
 
         val errorCorreo = when {
-            correo.isBlank() ->
-                "Ingresa tu correo electrónico."
-
-            !Patterns.EMAIL_ADDRESS.matcher(correo).matches() ->
-                "Ingresa un correo electrónico válido."
-
+            correo.isBlank() -> "Ingresa tu correo electrónico."
+            !Patterns.EMAIL_ADDRESS.matcher(correo).matches() -> "Ingresa un correo electrónico válido."
             else -> null
         }
 
         val errorContrasena = when {
-            estado.contrasena.isBlank() ->
-                "Ingresa tu contraseña."
-
+            estado.contrasena.isBlank() -> "Ingresa tu contraseña."
             else -> null
         }
 
@@ -91,25 +92,29 @@ class LoginViewModel(
 
         val estado = _uiState.value
 
-        when (
-            val resultado = autenticacionRepository.iniciarSesion(
-                correo = estado.correo,
-                contrasena = estado.contrasena
-            )
-        ) {
-            is ResultadoLogin.Exito -> {
-                _uiState.value = _uiState.value.copy(
-                    contrasena = "",
-                    mensajeError = null,
-                    usuarioAutenticado = resultado.usuario
-                )
-            }
+        // Estándar del profesor: Corrutina en viewModelScope consultando a Room
+        viewModelScope.launch {
+            try {
+                // Llama al método login(mail, pass) de tu UsuarioRepository
+                val usuario = repository.login(estado.correo, estado.contrasena)
 
-            ResultadoLogin.CredencialesInvalidas -> {
+                if (usuario != null) {
+                    _uiState.value = _uiState.value.copy(
+                        contrasena = "",
+                        mensajeError = null,
+                        usuarioAutenticado = usuario
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        contrasena = "",
+                        errorContrasena = null,
+                        mensajeError = "Correo o contraseña incorrectos.",
+                        usuarioAutenticado = null
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    contrasena = "",
-                    errorContrasena = null,
-                    mensajeError = "Correo o contraseña incorrectos.",
+                    mensajeError = "Error al conectar con la base de datos.",
                     usuarioAutenticado = null
                 )
             }
